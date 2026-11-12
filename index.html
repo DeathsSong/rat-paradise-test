@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#292337">
+    <title>Rat Paradise · Browser Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main id="game">
+        <canvas id="unity-canvas" tabindex="0" aria-label="Rat Paradise game"></canvas>
+        <section id="launch" class="overlay">
+            <div class="card">
+                <h1>Rat Paradise</h1>
+                <p>Browser test · Starts a separate colony on this device.</p>
+                <button id="play" type="button">Play</button>
+                <progress id="progress" value="0" max="1" hidden aria-label="Loading game"></progress>
+                <p id="loading-message" role="status" hidden></p>
+            </div>
+        </section>
+        <section id="rotate" class="overlay" hidden>
+            <div class="card"><h2>Turn your phone sideways</h2><p>Rat Paradise plays in landscape.</p></div>
+        </section>
+        <p id="save-error" role="status" hidden></p>
+    </main>
+    <script src="touch.js"></script>
+    <script>
+        const canvas = document.querySelector('#unity-canvas');
+        const launch = document.querySelector('#launch');
+        const play = document.querySelector('#play');
+        const progress = document.querySelector('#progress');
+        const message = document.querySelector('#loading-message');
+        const touch = window.RatParadiseWeb.touch;
+        const portrait = window.matchMedia('(orientation: portrait)');
+
+        function updateOrientation() {
+            document.querySelector('#rotate').hidden = !(touch && portrait.matches);
+        }
+        portrait.addEventListener('change', updateOrientation);
+        updateOrientation();
+
+        play.addEventListener('click', async () => {
+            play.disabled = true;
+            play.hidden = true;
+            progress.hidden = false;
+            message.hidden = false;
+            message.textContent = 'Loading the Keeper’s Room…';
+            const script = document.createElement('script');
+            script.src = 'Build/RatParadise-WebGL.loader.js';
+            const config = {
+                dataUrl: 'Build/RatParadise-WebGL.data.unityweb',
+                frameworkUrl: 'Build/RatParadise-WebGL.framework.js.unityweb',
+                codeUrl: 'Build/RatParadise-WebGL.wasm.unityweb',
+                streamingAssetsUrl: 'StreamingAssets',
+                companyName: "Rat Paradise Studio",
+                productName: "Rat Paradise",
+                productVersion: "0.1",
+                devicePixelRatio: Math.min(window.devicePixelRatio || 1, touch ? 1.25 : 1.5),
+                showBanner: (text, kind) => { if (kind === 'error') message.textContent = text; }
+            };
+            try {
+                await new Promise((resolve, reject) => {
+                    script.onload = resolve;
+                    script.onerror = () => reject(new Error('Could not load the game files.'));
+                    document.body.appendChild(script);
+                });
+                await createUnityInstance(canvas, config, value => { progress.value = value; });
+                launch.hidden = true;
+                canvas.focus({ preventScroll: true });
+            } catch (error) {
+                progress.hidden = true;
+                message.textContent = String(error);
+                play.textContent = 'Retry';
+                play.hidden = false;
+                play.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
