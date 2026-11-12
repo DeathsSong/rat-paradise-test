@@ -45,7 +45,7 @@
         const requestedScale = new URLSearchParams(location.search).get('scale');
         const defaultMobileScale = 1.75;
         const mobileScale = requestedScale === '1.75' || requestedScale === '2' ? Number(requestedScale) : defaultMobileScale;
-        const buildFile = filename => 'Build/' + filename + '?v=fullscreen-1';
+        const buildFile = filename => 'Build/' + filename + '?v=mobile-rat-pickup-20261112';
 
         function updateFullscreenButton() {
             fullscreen.textContent = document.fullscreenElement === game ? 'Exit Fullscreen' : 'Fullscreen';
