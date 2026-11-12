@@ -5,34 +5,63 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="theme-color" content="#292337">
     <title>Rat Paradise · Browser Test</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=fullscreen-1">
 </head>
 <body>
     <main id="game">
-        <canvas id="unity-canvas" tabindex="0" aria-label="Rat Paradise game"></canvas>
-        <section id="launch" class="overlay">
-            <div class="card">
-                <h1>Rat Paradise</h1>
-                <p>Browser test · Starts a separate colony on this device.</p>
-                <button id="play" type="button">Play</button>
-                <progress id="progress" value="0" max="1" hidden aria-label="Loading game"></progress>
-                <p id="loading-message" role="status" hidden></p>
-            </div>
-        </section>
-        <section id="rotate" class="overlay" hidden>
-            <div class="card"><h2>Turn your phone sideways</h2><p>Rat Paradise plays in landscape.</p></div>
-        </section>
-        <p id="save-error" role="status" hidden></p>
+        <header id="game-tools">
+            <span id="fullscreen-status" role="status"></span>
+            <button id="fullscreen" type="button" aria-controls="game">Fullscreen</button>
+        </header>
+        <div id="game-view">
+            <canvas id="unity-canvas" tabindex="0" aria-label="Rat Paradise game"></canvas>
+            <section id="launch" class="overlay">
+                <div class="card">
+                    <h1>Rat Paradise</h1>
+                    <p>Browser test · Starts a separate colony on this device.</p>
+                    <button id="play" type="button">Play</button>
+                    <progress id="progress" value="0" max="1" hidden aria-label="Loading game"></progress>
+                    <p id="loading-message" role="status" hidden></p>
+                </div>
+            </section>
+            <section id="rotate" class="overlay" hidden>
+                <div class="card"><h2>Turn your phone sideways</h2><p>Rat Paradise plays in landscape.</p></div>
+            </section>
+            <p id="save-error" role="status" hidden></p>
+        </div>
     </main>
     <script src="touch.js"></script>
     <script>
+        const game = document.querySelector('#game');
         const canvas = document.querySelector('#unity-canvas');
+        const fullscreen = document.querySelector('#fullscreen');
+        const fullscreenStatus = document.querySelector('#fullscreen-status');
         const launch = document.querySelector('#launch');
         const play = document.querySelector('#play');
         const progress = document.querySelector('#progress');
         const message = document.querySelector('#loading-message');
         const touch = window.RatParadiseWeb.touch;
         const portrait = window.matchMedia('(orientation: portrait)');
+        const requestedScale = new URLSearchParams(location.search).get('scale');
+        const defaultMobileScale = 1.75;
+        const mobileScale = requestedScale === '1.75' || requestedScale === '2' ? Number(requestedScale) : defaultMobileScale;
+        const buildFile = filename => 'Build/' + filename + '?v=fullscreen-1';
+
+        function updateFullscreenButton() {
+            fullscreen.textContent = document.fullscreenElement === game ? 'Exit Fullscreen' : 'Fullscreen';
+        }
+
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        fullscreen.addEventListener('click', async () => {
+            fullscreenStatus.textContent = '';
+            try {
+                if (document.fullscreenElement === game) await document.exitFullscreen();
+                else await game.requestFullscreen({ navigationUI: 'hide' });
+                if (launch.hidden) canvas.focus({ preventScroll: true });
+            } catch (error) {
+                fullscreenStatus.textContent = 'Fullscreen is unavailable in this tab.';
+            }
+        });
 
         function updateOrientation() {
             document.querySelector('#rotate').hidden = !(touch && portrait.matches);
@@ -47,16 +76,17 @@
             message.hidden = false;
             message.textContent = 'Loading the Keeper’s Room…';
             const script = document.createElement('script');
-            script.src = 'Build/RatParadise-WebGL.loader.js';
+            script.src = buildFile('RatParadise-WebGL.loader.js');
             const config = {
-                dataUrl: 'Build/RatParadise-WebGL.data.unityweb',
-                frameworkUrl: 'Build/RatParadise-WebGL.framework.js.unityweb',
-                codeUrl: 'Build/RatParadise-WebGL.wasm.unityweb',
+                dataUrl: buildFile('RatParadise-WebGL.data.unityweb'),
+                frameworkUrl: buildFile('RatParadise-WebGL.framework.js.unityweb'),
+                codeUrl: buildFile('RatParadise-WebGL.wasm.unityweb'),
                 streamingAssetsUrl: 'StreamingAssets',
                 companyName: "Rat Paradise Studio",
                 productName: "Rat Paradise",
                 productVersion: "0.1",
-                devicePixelRatio: Math.min(window.devicePixelRatio || 1, touch ? 1.25 : 1.5),
+                matchWebGLToCanvasSize: true,
+                devicePixelRatio: Math.min(window.devicePixelRatio || 1, touch ? mobileScale : 1.5),
                 showBanner: (text, kind) => { if (kind === 'error') message.textContent = text; }
             };
             try {
