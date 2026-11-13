@@ -63,6 +63,26 @@ button {
 
 progress { display: block; width: 100%; accent-color: #96ba7c; margin: 13px 0; }
 #loading-message { overflow-wrap: anywhere; }
+#start-card { width: min(100%, 510px); max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+#launch { padding: 8px 16px; grid-template-rows: minmax(0, 1fr); }
+#start-menu { display: grid; gap: 8px; text-align: left; }
+#start-menu h2 { font-size: 19px; margin: 0; }
+#start-menu p { margin: 0; }
+#start-menu button { min-width: 0; padding: 8px 12px; font-size: 15px; }
+#start-menu button:disabled { opacity: .52; cursor: default; }
+#start-menu .secondary { background: #fffaf1; border-color: #d2bfb0; }
+#start-menu .warning { background: #ffd8cc; border-color: #c99284; }
+.menu-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.menu-row button { flex: 1 1 auto; }
+.slot-list { display: grid; gap: 6px; }
+.save-slot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px; border-radius: 12px; background: #ecdefb; }
+.save-slot p, .menu-summary { font-size: 13px; }
+.menu-error { color: #8d2942; font-weight: 650; font-size: 14px; }
+@media (max-height: 560px) {
+    #start-card { padding: 12px 16px; }
+    #start-card h1 { font-size: 26px; margin-bottom: 8px; }
+    #start-menu button { min-height: 44px; }
+}
 #rotate { z-index: 3; }
 #save-error {
     position: absolute;
