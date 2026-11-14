@@ -3,7 +3,7 @@
 
     const canvas = document.querySelector('#unity-canvas');
     const touch = navigator.maxTouchPoints > 0 && matchMedia('(any-pointer: coarse)').matches;
-    const room = 0, scroll = 1, drag = 2;
+    const room = 0, scroll = 1, drag = 2, touchPanel = 3;
     let mode = room;
     let gesture = null;
     let tapPending = false;
@@ -73,6 +73,7 @@
             worldTouch(event);
             return false;
         }
+        if (mode === touchPanel) return false;
         event.preventDefault();
         event.stopImmediatePropagation();
         return true;
