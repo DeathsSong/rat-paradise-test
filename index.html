@@ -46,7 +46,7 @@
         const requestedScale = new URLSearchParams(location.search).get('scale');
         const defaultMobileScale = 1.75;
         const mobileScale = requestedScale === '1.75' || requestedScale === '2' ? Number(requestedScale) : defaultMobileScale;
-        const buildFile = filename => 'Build/' + filename + '?v=world-touch-3';
+        const buildFile = filename => 'Build/' + filename + '?v=advance-days-1';
 
         function updateFullscreenButton() {
             fullscreen.textContent = document.fullscreenElement === game ? 'Exit Fullscreen' : 'Fullscreen';
