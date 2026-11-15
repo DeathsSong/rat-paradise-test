@@ -8,12 +8,22 @@
     const receiver = 'Rat Paradise Start Menu';
     let instance, state, page = 'home', target, backup;
 
-    web.showMenu = data => { state = data; if (instance) draw(); };
+    web.showMenu = data => {
+        if (!data.entered && (!state || state.entered)) goHome();
+        state = data;
+        if (instance) draw();
+    };
     web.connectMenu = player => { instance = player; if (state) draw(); };
 
     function go(next) {
         page = next;
         draw();
+        document.querySelector('#start-card').scrollTop = 0;
+    }
+
+    function goHome() {
+        page = 'home';
+        target = backup = null;
         document.querySelector('#start-card').scrollTop = 0;
     }
 
@@ -30,8 +40,8 @@
     function draw() {
         document.querySelector('#progress').hidden = true;
         document.querySelector('#loading-message').hidden = true;
+        launch.hidden = state.entered;
         if (state.entered) {
-            launch.hidden = true;
             canvas.focus({ preventScroll: true });
             return;
         }
@@ -47,11 +57,13 @@
 
         switch (page) {
             case 'home': {
-                add('p', state.summary || 'No active colony yet.', menu, 'menu-summary');
+                const resume = button(menu, 'Continue', () => instance.SendMessage(receiver, 'ContinueColony'), 'continue', !state.canContinue);
+                const summary = add('p', state.summary || 'No autosave yet.', menu, 'menu-summary');
+                summary.id = 'autosave-summary';
+                resume.setAttribute('aria-describedby', summary.id);
                 const row = add('div', null, menu, 'menu-row');
-                button(row, 'Continue', () => instance.SendMessage(receiver, 'ContinueColony'), '', !state.canContinue);
-                button(row, 'New Game', () => choose(0));
-                button(row, 'Load Game', () => go('load'), 'secondary');
+                button(row, 'New Game', () => choose(0), 'peach');
+                button(row, 'Load Game', () => go('load'), 'lilac');
                 break;
             }
             case 'load':
@@ -60,13 +72,13 @@
                 button(menu, 'Back', () => go('home'), 'secondary');
                 break;
             case 'protect': {
-                add('h2', 'Save your current colony?', menu);
-                add('p', target === 0 ? 'Starting a new game replaces the current autosave.' :
-                    `Loading Slot ${target} replaces the current autosave.`, menu);
+                add('h2', target === 0 ? 'Start a new colony?' : `Load Slot ${target}?`, menu);
+                add('p', (target === 0 ? 'Starting a new game' : `Loading Slot ${target}`) +
+                    ' replaces the current autosave. You can keep a copy in a manual slot.', menu);
                 const row = add('div', null, menu, 'menu-row');
-                button(row, 'Save Current Colony', () => go('save'), '', !state.canContinue);
-                button(row, target === 0 ? 'Start Without Saving' : 'Load Without Saving', () => go('skip'), 'warning');
                 button(row, 'Cancel', () => go(target === 0 ? 'home' : 'load'), 'secondary');
+                button(row, 'Save Current Colony to a Slot', () => go('save'), '', !state.canContinue);
+                button(row, target === 0 ? 'Start New Game' : `Load Slot ${target}`, () => sendSwitch(0, true), 'warning');
                 break;
             }
             case 'save':
@@ -81,10 +93,6 @@
             case 'overwrite':
                 confirm(`Replace the snapshot in Slot ${backup}?`, 'Save', () => sendSwitch(backup, true), 'save');
                 break;
-            case 'skip':
-                confirm('Your current autosave will be replaced. Your manual slots will stay as they are.',
-                    target === 0 ? 'Start New Game' : `Load Slot ${target}`, () => sendSwitch(0, true), 'protect');
-                break;
         }
     }
 
@@ -93,7 +101,7 @@
         add('p', message, menu);
         const row = add('div', null, menu, 'menu-row');
         button(row, 'Cancel', () => go(cancel), 'secondary');
-        button(row, label, action, page === 'skip' ? 'warning' : '');
+        button(row, label, action);
     }
 
     function slots(label, action, disabled) {
