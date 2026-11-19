@@ -6,25 +6,23 @@
     const room = 0, scroll = 1, drag = 2, touchPanel = 3;
     let mode = room;
     let gesture = null;
-    let tapPending = false;
+    const clicks = [];
+    let pressedClick = null;
+    let clickTimer = null;
     const worldContacts = new Map();
-    let worldTap = null;
+    const worldTaps = [];
+    const scrollEvents = [];
 
     window.RatParadiseWeb = {
         touch,
         setPointerMode(next) {
-            if (next !== mode) clearWorldTaps();
-            if (next !== mode && gesture) {
-                if (gesture.dragging && mode === drag) mouse('mouseup', gesture.x, gesture.y, 0);
-                gesture = null;
-            }
+            if (next !== mode) interrupt();
             mode = next;
         },
         readWorldTap() {
-            const tap = worldTap;
-            worldTap = null;
-            return tap;
+            return worldTaps.shift() || null;
         },
+        readScroll() { return scrollEvents.shift(); },
         saveResult(error) {
             const notice = document.querySelector('#save-error');
             notice.hidden = !error;
@@ -35,12 +33,27 @@
 
     function clearWorldTaps() {
         worldContacts.clear();
-        worldTap = null;
+        worldTaps.length = 0;
     }
 
-    document.addEventListener('fullscreenchange', clearWorldTaps);
-    document.addEventListener('visibilitychange', clearWorldTaps);
-    new ResizeObserver(clearWorldTaps).observe(canvas);
+    function interrupt() {
+        clearWorldTaps();
+        cancelClicks();
+        if (gesture?.dragging && mode === drag) mouse('mouseup', gesture.x, gesture.y, 0);
+        gesture = null;
+        scrollEvents.length = 0;
+        scrollEvents.push([3, 0, 0, 0]);
+    }
+
+    document.addEventListener('fullscreenchange', interrupt);
+    document.addEventListener('visibilitychange', interrupt);
+    new ResizeObserver(interrupt).observe(canvas);
+
+    function scrollPoint(type, x, y, time) {
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        scrollEvents.push([type, (x - rect.left) / rect.width, (y - rect.top) / rect.height, time * .001]);
+    }
 
     function worldTouch(event) {
         const rect = canvas.getBoundingClientRect();
@@ -58,7 +71,7 @@
             if (event.type === 'touchmove') continue;
             worldContacts.delete(id);
             if (event.type === 'touchend' && !start.dragged && event.timeStamp - start.time <= 420 && rect.width && rect.height)
-                worldTap = [start.x / rect.width, start.y / rect.height, x / rect.width, y / rect.height];
+                worldTaps.push([start.x / rect.width, start.y / rect.height, x / rect.width, y / rect.height]);
         }
     }
 
@@ -79,12 +92,39 @@
         return true;
     }
 
+    function releaseClick() {
+        if (pressedClick) mouse('mouseup', pressedClick.x, pressedClick.y, 0);
+        pressedClick = null;
+    }
+
+    function cancelClicks() {
+        if (clickTimer !== null) clearTimeout(clickTimer);
+        clickTimer = null;
+        clicks.length = 0;
+        releaseClick();
+    }
+
+    function playNextClick() {
+        clickTimer = null;
+        if (!clicks.length || (mode === drag && gesture?.dragging)) return;
+        pressedClick = clicks.shift();
+        mouse('mousemove', pressedClick.x, pressedClick.y, 0);
+        mouse('mousedown', pressedClick.x, pressedClick.y, 1);
+        // Give Unity a player frame for each edge, including the release
+        // between consecutive touches.
+        clickTimer = setTimeout(() => {
+            releaseClick();
+            clickTimer = setTimeout(playNextClick, 55);
+        }, 100);
+    }
+
     const options = { capture: true, passive: false };
     canvas.addEventListener('touchstart', event => {
-        if (!menuTouch(event) || gesture || tapPending) return;
+        if (!menuTouch(event) || gesture) return;
         const finger = event.changedTouches[0];
         gesture = { id: finger.identifier, startX: finger.clientX, startY: finger.clientY,
             x: finger.clientX, y: finger.clientY, dragging: false };
+        if (mode === scroll) scrollPoint(0, finger.clientX, finger.clientY, event.timeStamp);
     }, options);
 
     canvas.addEventListener('touchmove', event => {
@@ -94,15 +134,14 @@
         const x = finger.clientX, y = finger.clientY;
         if (!gesture.dragging && Math.hypot(x - gesture.startX, y - gesture.startY) >= 7) {
             gesture.dragging = true;
-            if (mode === drag) mouse('mousedown', gesture.startX, gesture.startY, 1);
-            else if (mode === scroll) mouse('mousemove', gesture.startX, gesture.startY, 0);
+            if (mode === drag) {
+                if (pressedClick) releaseClick();
+                mouse('mousedown', gesture.startX, gesture.startY, 1);
+            }
         }
         if (gesture.dragging) {
             if (mode === drag) mouse('mousemove', x, y, 1);
-            else if (mode === scroll) canvas.dispatchEvent(new WheelEvent('wheel', {
-                bubbles: true, cancelable: true, clientX: gesture.startX, clientY: gesture.startY,
-                deltaY: (gesture.y - y) * 3.5, deltaMode: WheelEvent.DOM_DELTA_PIXEL
-            }));
+            else if (mode === scroll) scrollPoint(1, x, y, event.timeStamp);
         }
         gesture.x = x;
         gesture.y = y;
@@ -114,18 +153,16 @@
         if (!finger) return;
         const previous = gesture;
         gesture = null;
-        if (previous.dragging && mode === drag) mouse('mouseup', finger.clientX, finger.clientY, 0);
-        if (previous.dragging || event.type === 'touchcancel') return;
-        const x = finger.clientX, y = finger.clientY;
-        tapPending = true;
-        mouse('mousemove', x, y, 0);
-        mouse('mousedown', x, y, 1);
-        // Unity polls the mouse button once per player frame. Keep it down
-        // long enough for a touch click to register on slower phones.
-        setTimeout(() => {
-            mouse('mouseup', x, y, 0);
-            tapPending = false;
-        }, 100);
+        const dragged = previous.dragging || Math.hypot(finger.clientX - previous.startX, finger.clientY - previous.startY) >= 7;
+        if (previous.dragging && mode === drag) {
+            mouse('mouseup', finger.clientX, finger.clientY, 0);
+            if (clickTimer === null && clicks.length) clickTimer = setTimeout(playNextClick, 55);
+        }
+        if (mode === scroll) scrollPoint(event.type === 'touchcancel' || !dragged ? 3 : 2,
+            finger.clientX, finger.clientY, event.timeStamp);
+        if (dragged || event.type === 'touchcancel') return;
+        clicks.push({x: finger.clientX, y: finger.clientY});
+        if (clickTimer === null) playNextClick();
     }
 
     canvas.addEventListener('touchend', finish, options);

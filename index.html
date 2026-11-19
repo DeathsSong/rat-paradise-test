@@ -38,7 +38,7 @@
             <p id="save-error" role="status" hidden></p>
         </div>
     </main>
-    <script src="touch.js?v=world-touch-3"></script>
+    <script src="touch.js?v=audit-20261118"></script>
     <script src="start-menu.js?v=menu-2"></script>
     <script>
         const game = document.querySelector('#game');
@@ -54,7 +54,7 @@
         const requestedScale = new URLSearchParams(location.search).get('scale');
         const defaultMobileScale = 1.75;
         const mobileScale = requestedScale === '1.75' || requestedScale === '2' ? Number(requestedScale) : defaultMobileScale;
-        const buildFile = filename => 'Build/' + filename + '?v=main-menu-2';
+        const buildFile = filename => 'Build/' + filename + '?v=audit-20261118';
 
         function updateFullscreenButton() {
             fullscreen.textContent = document.fullscreenElement === game ? 'Exit Fullscreen' : 'Fullscreen';
