@@ -40,6 +40,7 @@
     </main>
     <script src="touch.js?v=audit-20261118"></script>
     <script src="start-menu.js?v=menu-2"></script>
+    <script src="build-parts.js?v=1"></script>
     <script>
         const game = document.querySelector('#game');
         const canvas = document.querySelector('#unity-canvas');
@@ -54,7 +55,9 @@
         const requestedScale = new URLSearchParams(location.search).get('scale');
         const defaultMobileScale = 1.75;
         const mobileScale = requestedScale === '1.75' || requestedScale === '2' ? Number(requestedScale) : defaultMobileScale;
-        const buildFile = filename => 'Build/' + filename + '?v=audit-20261118';
+        const buildRevision = 'c273b1e0616d9f12';
+        const dataParts = [{"file":"colony-data-d08a33fea82c1a7d474423f2.bin","size":33554432},{"file":"colony-data-fb69a92ea3577122b303cd2f.bin","size":33554432},{"file":"colony-data-9705a59888e3bf5bafb35294.bin","size":33554432},{"file":"colony-data-7185018c62de3b7e2227fb5e.bin","size":13270938}];
+        const buildFile = filename => 'Build/' + filename + '?v=' + buildRevision;
 
         function updateFullscreenButton() {
             fullscreen.textContent = document.fullscreenElement === game ? 'Exit Fullscreen' : 'Fullscreen';
@@ -81,11 +84,11 @@
         retry.addEventListener('click', () => location.reload());
         (async function startPlayer() {
             const script = document.createElement('script');
-            script.src = buildFile('RatParadise-WebGL.loader.js');
+            script.src = buildFile('KeeperRoom.loader.js');
             const config = {
-                dataUrl: buildFile('RatParadise-WebGL.data.unityweb'),
-                frameworkUrl: buildFile('RatParadise-WebGL.framework.js.unityweb'),
-                codeUrl: buildFile('RatParadise-WebGL.wasm.unityweb'),
+                dataUrl: buildFile('KeeperRoom.data.unityweb'),
+                frameworkUrl: buildFile('KeeperRoom.framework.js.unityweb'),
+                codeUrl: buildFile('KeeperRoom.wasm.unityweb'),
                 streamingAssetsUrl: 'StreamingAssets',
                 companyName: "Rat Paradise Studio",
                 productName: "Rat Paradise",
@@ -100,7 +103,10 @@
                     script.onerror = () => reject(new Error('Could not load the game files.'));
                     document.body.appendChild(script);
                 });
-                const instance = await createUnityInstance(canvas, config, value => { progress.value = value; });
+                const restoreFetch = window.installParadiseDataParts(config, dataParts);
+                let instance;
+                try { instance = await createUnityInstance(canvas, config, value => { progress.value = value; }); }
+                finally { restoreFetch(); }
                 window.RatParadiseWeb.connectMenu(instance);
             } catch (error) {
                 progress.hidden = true;
