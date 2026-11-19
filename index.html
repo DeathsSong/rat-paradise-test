@@ -55,8 +55,8 @@
         const requestedScale = new URLSearchParams(location.search).get('scale');
         const defaultMobileScale = 1.75;
         const mobileScale = requestedScale === '1.75' || requestedScale === '2' ? Number(requestedScale) : defaultMobileScale;
-        const buildRevision = '241a017e0545080a';
-        const dataParts = [{"file":"colony-data-5126cd1904da96860ed17ff8.bin","size":33554432},{"file":"colony-data-823d15020f99c8f0a3ee7457.bin","size":33554432},{"file":"colony-data-9471ad5f38b3444ab4133f49.bin","size":33554432},{"file":"colony-data-4374052aad32381e97ab3b9a.bin","size":13305032}];
+        const buildRevision = 'dc32eae28f6eb1c0';
+        const dataParts = [{"file":"colony-data-03793f612c052452f0ca56ad.bin","size":33554432},{"file":"colony-data-aeb09e54f7e7cd51ab0994c4.bin","size":33554432},{"file":"colony-data-8e721218856cb7d220e78752.bin","size":33554432},{"file":"colony-data-ad0763b7413e2e8f0fcaeb7f.bin","size":13305719}];
         const buildFile = filename => 'Build/' + filename + '?v=' + buildRevision;
 
         function updateFullscreenButton() {
