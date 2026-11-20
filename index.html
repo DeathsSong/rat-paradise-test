@@ -55,8 +55,8 @@
         const requestedScale = new URLSearchParams(location.search).get('scale');
         const defaultMobileScale = 1.75;
         const mobileScale = requestedScale === '1.75' || requestedScale === '2' ? Number(requestedScale) : defaultMobileScale;
-        const buildRevision = 'dc32eae28f6eb1c0';
-        const dataParts = [{"file":"colony-data-03793f612c052452f0ca56ad.bin","size":33554432},{"file":"colony-data-aeb09e54f7e7cd51ab0994c4.bin","size":33554432},{"file":"colony-data-8e721218856cb7d220e78752.bin","size":33554432},{"file":"colony-data-ad0763b7413e2e8f0fcaeb7f.bin","size":13305719}];
+        const buildRevision = 'ba29c8c46c21df9b';
+        const dataParts = [{"file":"colony-data-4cfc88f8be2f42d20293838f.bin","size":33554432},{"file":"colony-data-44f1e465915f466bb01d5430.bin","size":33554432},{"file":"colony-data-75e420f21a1a2842ad19f67b.bin","size":33554432},{"file":"colony-data-596ba7dfe4c64cf3fdec5390.bin","size":13319443}];
         const buildFile = filename => 'Build/' + filename + '?v=' + buildRevision;
 
         function updateFullscreenButton() {
@@ -84,11 +84,11 @@
         retry.addEventListener('click', () => location.reload());
         (async function startPlayer() {
             const script = document.createElement('script');
-            script.src = buildFile('RatParadise.loader.js');
+            script.src = buildFile('WebGL.loader.js');
             const config = {
-                dataUrl: buildFile('RatParadise.data.unityweb'),
-                frameworkUrl: buildFile('RatParadise.framework.js.unityweb'),
-                codeUrl: buildFile('RatParadise.wasm.unityweb'),
+                dataUrl: buildFile('WebGL.data.unityweb'),
+                frameworkUrl: buildFile('WebGL.framework.js.unityweb'),
+                codeUrl: buildFile('WebGL.wasm.unityweb'),
                 streamingAssetsUrl: 'StreamingAssets',
                 companyName: "Rat Paradise Studio",
                 productName: "Rat Paradise",
