@@ -14,6 +14,13 @@
         if (instance) draw();
     };
     web.connectMenu = player => { instance = player; if (state) draw(); };
+    web.backMenu = () => {
+        if (!state || state.entered || state.busy) return;
+        if (page === 'load') go('home');
+        else if (page === 'protect') go(target === 0 ? 'home' : 'load');
+        else if (page === 'save') go('protect');
+        else if (page === 'overwrite') go('save');
+    };
 
     function go(next) {
         page = next;

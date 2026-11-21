@@ -144,3 +144,14 @@ progress { display: block; width: 100%; accent-color: #96ba7c; margin: 13px 0; }
     background: #ffe1d2;
     pointer-events: none;
 }
+/* Keep controller focus distinct from hover on touch-capable devices. */
+#start-menu[data-pad-focus] button:focus {
+    outline: 3px solid #563985;
+    outline-offset: 3px;
+}
+
+#start-menu .gamepad-hint {
+    margin-top: .4rem;
+    color: #533f67;
+    font-size: .85rem;
+}

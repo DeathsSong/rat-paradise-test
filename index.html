@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="theme-color" content="#e7dcf5">
     <title>Rat Paradise · Browser Test</title>
-    <link rel="stylesheet" href="style.css?v=menu-2">
+    <link rel="stylesheet" href="style.css?v=controller-1">
 </head>
 <body>
     <main id="game">
@@ -39,7 +39,8 @@
         </div>
     </main>
     <script src="touch.js?v=audit-20261118"></script>
-    <script src="start-menu.js?v=menu-2"></script>
+    <script src="start-menu.js?v=controller-1"></script>
+    <script src="gamepad.js?v=controller-1"></script>
     <script src="build-parts.js?v=1"></script>
     <script>
         const game = document.querySelector('#game');
@@ -55,8 +56,8 @@
         const requestedScale = new URLSearchParams(location.search).get('scale');
         const defaultMobileScale = 1.75;
         const mobileScale = requestedScale === '1.75' || requestedScale === '2' ? Number(requestedScale) : defaultMobileScale;
-        const buildRevision = 'c72658c99276dd5e';
-        const dataParts = [{"file":"colony-data-464634a8303bbd913d68ca3e.bin","size":33554432},{"file":"colony-data-af7d6da015956877f178d216.bin","size":33554432},{"file":"colony-data-adb7eb68d6c643902df6c7c9.bin","size":33554432},{"file":"colony-data-8be5096b56f8c222c12ee46c.bin","size":13322387}];
+        const buildRevision = '3b4cf5514e1d7f52';
+        const dataParts = [{"file":"colony-data-5653344586092f674895c363.bin","size":33554432},{"file":"colony-data-9ccc4c649ed1bc4688050caf.bin","size":33554432},{"file":"colony-data-21339496515ecc92744843ca.bin","size":33554432},{"file":"colony-data-5bd6814d1f83e33facd08f5e.bin","size":13898333}];
         const buildFile = filename => 'Build/' + filename + '?v=' + buildRevision;
 
         function updateFullscreenButton() {
@@ -84,11 +85,11 @@
         retry.addEventListener('click', () => location.reload());
         (async function startPlayer() {
             const script = document.createElement('script');
-            script.src = buildFile('Final.loader.js');
+            script.src = buildFile('WebGL.loader.js');
             const config = {
-                dataUrl: buildFile('Final.data.unityweb'),
-                frameworkUrl: buildFile('Final.framework.js.unityweb'),
-                codeUrl: buildFile('Final.wasm.unityweb'),
+                dataUrl: buildFile('WebGL.data.unityweb'),
+                frameworkUrl: buildFile('WebGL.framework.js.unityweb'),
+                codeUrl: buildFile('WebGL.wasm.unityweb'),
                 streamingAssetsUrl: 'StreamingAssets',
                 companyName: "Rat Paradise Studio",
                 productName: "Rat Paradise",
